@@ -1,19 +1,34 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { Button } from './components/Button';
 import { generateImageEdit } from './services/geminiService';
 import { AppState, PresetPrompt } from './types';
 
-const PRESET_PROMPTS: PresetPrompt[] = [
-  // Mockup style
+// Expanded list of presets for dynamic generation
+const ALL_PRESETS: PresetPrompt[] = [
+  // Product Mockups
   { label: 'T-Shirt Mockup', text: 'Place this design on a plain white t-shirt worn by a model in a studio setting.', icon: '👕' },
   { label: 'Laptop Sticker', text: 'Show this design as a die-cut sticker on a silver laptop lid.', icon: '💻' },
   { label: 'Coffee Mug', text: 'Apply this logo to a ceramic coffee mug on a wooden table.', icon: '☕' },
+  { label: 'Tote Bag', text: 'Display this design printed on a canvas tote bag hanging on a hook.', icon: '👜' },
+  { label: 'Phone Case', text: 'Show this pattern on a sleek phone case lying on a marble surface.', icon: '📱' },
+  { label: 'Soda Can', text: 'Wrap this design around a cold aluminum soda can with condensation.', icon: '🥤' },
   
-  // Creative Editing style
+  // Artistic Styles
   { label: 'Retro Filter', text: 'Add a vintage 1980s film grain filter and warm color grading to this image.', icon: '📼' },
   { label: 'Cyberpunk', text: 'Transform the environment to a futuristic cyberpunk city with neon lights.', icon: '🌃' },
   { label: 'Pencil Sketch', text: 'Convert this image into a detailed charcoal and pencil sketch.', icon: '✏️' },
+  { label: 'Pixel Art', text: 'Convert this image into 16-bit pixel art style.', icon: '👾' },
+  { label: 'Watercolor', text: 'Transform this into a soft watercolor painting on textured paper.', icon: '🖌️' },
+  { label: 'Neon Sign', text: 'Turn the main subject into a glowing neon sign on a brick wall.', icon: '💡' },
+  { label: 'Claymation', text: 'Reimagine this scene in a claymation stop-motion style.', icon: '🗿' },
+  { label: 'LEGO Style', text: 'Rebuild this entire scene using plastic toy bricks.', icon: '🧱' },
+  { label: 'Vaporwave', text: 'Apply a vaporwave aesthetic with pink and teal colors and glitch effects.', icon: '🌴' },
+  { label: 'Noir', text: 'Convert to high-contrast black and white film noir style.', icon: '🕵️' },
+  { label: 'Low Poly', text: 'Render the image in a low-poly 3D geometric style.', icon: '🔷' },
+  { label: 'Origami', text: 'Reimagine this object as folded origami paper art.', icon: '🦢' },
+  { label: 'Oil Painting', text: 'Transform into a classical oil painting with visible brush strokes.', icon: '🎨' },
+  { label: 'Ice Sculpture', text: 'Turn the subject into a carved translucent ice sculpture.', icon: '🧊' }
 ];
 
 function App() {
@@ -22,6 +37,17 @@ function App() {
   const [prompt, setPrompt] = useState<string>('');
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [error, setError] = useState<string | null>(null);
+  const [displayedPresets, setDisplayedPresets] = useState<PresetPrompt[]>([]);
+
+  // Shuffle presets on mount
+  useEffect(() => {
+    shufflePresets();
+  }, []);
+
+  const shufflePresets = useCallback(() => {
+    const shuffled = [...ALL_PRESETS].sort(() => 0.5 - Math.random());
+    setDisplayedPresets(shuffled.slice(0, 6)); // Display 6 random items
+  }, []);
 
   const handleImageSelected = useCallback((base64: string) => {
     setSourceImage(base64);
@@ -38,7 +64,6 @@ function App() {
     setGeneratedImage(null); 
 
     try {
-      // Direct call to editing service without hardcoded suffixes
       const result = await generateImageEdit(sourceImage, prompt);
       setGeneratedImage(result);
       setAppState(AppState.SUCCESS);
@@ -137,16 +162,29 @@ function App() {
 
                 {/* Quick Presets */}
                 <div>
-                    <label className="block text-xs text-zinc-600 mb-2">Inspirations</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {PRESET_PROMPTS.map((p) => (
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Inspirations</label>
+                        <button 
+                            onClick={shufflePresets}
+                            className="flex items-center space-x-1.5 text-xs text-zinc-500 hover:text-white transition-colors group px-2 py-1 rounded hover:bg-zinc-900/50"
+                            title="Get new ideas"
+                        >
+                            <svg className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span className="font-medium">Randomize</span>
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {displayedPresets.map((p, i) => (
                             <button
-                                key={p.label}
+                                key={`${p.label}-${i}`}
                                 onClick={() => setPrompt(p.text)}
-                                className="group flex items-center space-x-3 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-md text-left transition-all duration-200"
+                                className="group relative overflow-hidden flex items-center space-x-3 px-3 py-2.5 bg-zinc-900/40 hover:bg-zinc-800 border border-zinc-800/60 hover:border-zinc-600 rounded-lg text-left transition-all duration-200"
                             >
-                                <span className="text-base bg-zinc-950 p-1 rounded group-hover:scale-110 transition-transform">{p.icon}</span>
-                                <span className="text-xs font-medium text-zinc-400 group-hover:text-zinc-200">{p.label}</span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                                <span className="text-base bg-zinc-950/80 p-1.5 rounded-md border border-zinc-800/50 group-hover:scale-105 transition-transform shadow-sm">{p.icon}</span>
+                                <span className="text-xs font-medium text-zinc-400 group-hover:text-zinc-100">{p.label}</span>
                             </button>
                         ))}
                     </div>
@@ -201,18 +239,30 @@ function App() {
             </div>
 
             {/* Main Canvas Area */}
-            <div className="flex-grow flex items-center justify-center p-8 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-opacity-5">
+            <div className="flex-grow relative flex items-center justify-center p-8 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-opacity-5">
                 {appState === AppState.GENERATING ? (
-                    <div className="text-center space-y-8">
-                        <div className="relative">
-                            <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                     <div className="relative w-full h-full flex items-center justify-center">
+                        {/* Blurred Source Background */}
+                        {sourceImage && (
+                            <img 
+                                src={sourceImage} 
+                                alt="Processing Preview" 
+                                className="absolute inset-0 w-full h-full object-contain opacity-30 blur-sm grayscale-[30%] transition-all duration-700"
+                            />
+                        )}
+                        
+                        {/* Loading Indicator */}
+                        <div className="text-center space-y-8 relative z-10">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-medium text-white tracking-tight">Generating...</h3>
-                            <p className="text-zinc-500 text-sm mt-2">Gemini is processing your pixels</p>
+                            <div>
+                                <h3 className="text-lg font-medium text-white tracking-tight">Generating...</h3>
+                                <p className="text-zinc-400 text-sm mt-2">Gemini is processing your pixels</p>
+                            </div>
                         </div>
                     </div>
                 ) : generatedImage ? (
