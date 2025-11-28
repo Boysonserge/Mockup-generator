@@ -1,0 +1,5 @@
+{
+  "name": "NanoMockup Studio",
+  "description": "An on-demand merchandise mockup generator powered by Gemini 2.5 Flash Image. Upload your logo, describe the product or effect, and generate professional previews instantly.",
+  "requestFramePermissions": []
+}
