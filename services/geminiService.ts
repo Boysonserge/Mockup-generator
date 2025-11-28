@@ -22,7 +22,7 @@ const getMimeType = (dataUri: string): string => {
 /**
  * Generates an edited version of the image based on the prompt using Gemini 2.5 Flash Image.
  */
-export const generateMerchMockup = async (
+export const generateImageEdit = async (
   base64Image: string,
   prompt: string
 ): Promise<string> => {
@@ -30,7 +30,7 @@ export const generateMerchMockup = async (
     const mimeType = getMimeType(base64Image);
     const rawBase64 = stripBase64Prefix(base64Image);
 
-    // Using 'gemini-2.5-flash-image' as requested (User referred to "Nano banana")
+    // Using 'gemini-2.5-flash-image'
     const modelId = 'gemini-2.5-flash-image';
 
     const response = await ai.models.generateContent({
@@ -44,11 +44,10 @@ export const generateMerchMockup = async (
             },
           },
           {
-            text: `${prompt}. Make it look like a high-quality professional product photograph.`,
+            text: prompt,
           },
         ],
       },
-      // Note: responseMimeType and responseSchema are NOT supported for nano banana models
     });
 
     let generatedImageUrl = '';
@@ -58,9 +57,8 @@ export const generateMerchMockup = async (
       for (const part of response.candidates[0].content.parts) {
         if (part.inlineData) {
           const base64Response = part.inlineData.data;
-          // Assume PNG if not specified, though usually the model returns the same type or PNG
           generatedImageUrl = `data:image/png;base64,${base64Response}`;
-          break; // Found the image, exit loop
+          break; 
         } else if (part.text) {
             console.log("Model Text Output:", part.text);
         }
